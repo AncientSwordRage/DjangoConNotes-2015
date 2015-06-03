@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<!--
+  Google HTML5 slide template
+
+  Authors: Luke Mahé (code)
+           Marcin Wichary (code and design)
+           
+           Dominic Mazzoni (browser compatibility)
+           Charles Chen (ChromeVox support)
+
+  URL: http://code.google.com/p/html5slides/
+-->
+
+<html>
+  <head>
+    <title>Djangular - Integrating Django and AngularJS</title>
+
+    <meta charset='utf-8'>
+    <script
+      src='http://html5slides.googlecode.com/svn/trunk/slides.js'></script>
+  </head>
+  
+  <style>
+    /* Your individual styles here, or just use inline styles if that’s
+       what you want. */
+    
+    
+  </style>
+
+  <body style='display: none'>
+
+    <section class='slides layout-regular template-default'>
+      
+      <!-- Your slides (<article class="nobackground">s) go here. Delete or comment out the
+           slides below. -->
+      <article class="nobackground">
+        <h1>
+          Djangular
+          <br>
+          Integrating Django and AngularJS
+        </h1>
+        <p>
+          Craig Stone
+          <br>
+          @Pureferret
+          <br>
+          May 10, 2011
+        </p>
+      </article>
+      
+      <article class="nobackground">
+        <h3>Why use Django and AngularJS?</h3>
+        <ul class="build">
+          <li>Two way binding - AngularJS</li>
+          <li>Excellent Backend - Django</li>
+          <li>Truely Dynamic Forms</li>
+          <li>Part of the 'Real Time Web'</li>
+          <li>Some good synergy</li>
+          <li>Team Lead asks you too...</li>
+        </ul>
+      </article>
+
+     <article class="nobackground">
+       <h3>What libraries do I need to play with this?</h3>
+       <ul>
+         <li>Django REST Framework (<code>django-rest-framework</code>)</li>
+         <li>Djangular (<code>djangular</code>)</li>
+         <li>Django-Angular (<code>djangular</code>) <div class="smaller"><br/>I had to rename some of these!</div> </li>
+       </ul>
+     </article>
+     <article class="nobackground">
+       <h3>Django REST framework</h3>
+       <p>
+         Need this to send AngularJS your model in json form.
+       </p>
+       <p>
+         Also gives a great API view.
+       </p>
+       <pre>
+from django.contrib.auth.models import User, Group
+from rest_framework import serializers
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
+        fields = ('url', 'username', 'email', 'groups')
+
+       </pre>       
+     </article>
+     <article class="nobackground">
+       <h3>Django-Angular</h3>
+       <br/>
+       <p>
+         Need this to execute python code from AngularJS.
+       </p>
+       <p>
+         Decorate a view method to <code>allow_remote_invocation</code>
+       </p>
+       <pre>
+from django.views.generic import View
+from djangular.views.mixins import JSONResponseMixin, allow_remote_invocation
+
+class MyJSONView(JSONResponseMixin, View):
+    # other view methods
+
+    @allow_remote_invocation
+    def process_something(self, in_data):
+        # process in_data
+        out_data = {
+            'foo': 'bar',
+            'success': True,
+      }
+      return out_data         
+       </pre>
+     </article>
+     <article class="nobackground">
+       <h3>Django-Angular</h3>
+       <br/>
+       <p>
+         Need this to execute python code from AngularJS.
+       </p>
+       <p>
+         Configure your Javascript RMI provider
+       </p>
+       <pre>
+{­% load djangular_tags %­}
+…
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var rmi = djangoRMIProvider.configure({&#173;% djng_all_rmi %&#173;});
+my_app.config(function(djangoRMIProvider) {
+  rmi
+});
+&lt;/script&gt;
+     </pre>
+     </article>
+     <article class="nobackground">
+       <h3>Django-Angular</h3>
+       <br/>
+       <p>
+         Now run the code in JS!
+       </p>
+       <pre>
+my_app.controller(&quot;SinglePageCtlr&quot;, function($scope, djangoRMI) {
+    $scope.invoke = function() {
+        var in_data = { some: &#39;data&#39; };
+        djangoRMI.process_something(in_data)
+           .success(function(out_data) {
+               // do something with out_data
+           });
+    };
+});
+
+     </pre>
+     </article>
+     <article class="nobackground">
+       <h3>Djangular</h3>
+       <br/>
+       <p>
+         I only use this to access DjangoProperties - Handy for URL routing in angular
+       </p>
+       <pre>
+angular.module(&#39;sample&#39;, [
+    &#39;djangular&#39;, &#39;sample.filters&#39;, &#39;sample.services&#39;, &#39;sample.directives&#39;,
+    &#39;sample.controllers&#39;
+    ]).config([
+        &#39;$routeProvider&#39;,&#39;DjangoProperties&#39;,
+        function($routeProvider, DjangoProperties) {
+            $routeProvider.when(&#39;/view1&#39;, {
+                templateUrl: DjangoProperties.STATIC_URL +
+                    &#39;sample/view1/view1.html&#39;, controller: &#39;View1Ctrl&#39;});
+            $routeProvider.when(&#39;/view2&#39;, {
+                templateUrl: DjangoProperties.STATIC_URL +
+                    &#39;sample/view2/view2.html&#39;, controller: &#39;View2Ctrl&#39;});
+            $routeProvider.otherwise({redirectTo: &#39;/view1&#39;});
+        }
+    ]);
+     </pre>
+     </article>
+     <article class="nobackground">
+       <h3>Other cool features of the django-angular and djangular</h3>
+       <br/>
+       <ul>
+         <li>Three way binding - Input -> Page ->DB (via Redis) </li>
+         <li>Also gives you <code>manage.py startangularapp</code> which creates an 'angular aware' project structure </li>
+         <li>A way into JavaScript that also obeys MVC framework</li>
+       </ul>
+     </article>
+     <article class="nobackground">
+       <h3>
+         Downsides
+       </h3>
+       <br/>
+       <ul>
+         <li>Curly Brace conflicts - Both use {{}}</li>
+         <li>Both do URL routing - Ugh!</li>
+         <li>Have to learn a new language!</li>
+       </ul>
+     </article>
+    </section>
+
+  </body>
+</html>
