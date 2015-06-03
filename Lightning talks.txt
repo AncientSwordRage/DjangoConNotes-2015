@@ -1,3 +1,0 @@
-gitcrypt
-django and earthquakes
-goat+behave
